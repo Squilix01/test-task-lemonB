@@ -1,0 +1,28 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Lemon B — Trend Products Analytics MVP"
+authors = [
+    {name = "Squilix"}
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[all] (>=0.141.1,<0.142.0)",
+    "sqlalchemy (>=2.0.52,<3.0.0)",
+    "asyncpg (>=0.31.0,<0.32.0)",
+    "alembic (>=1.19.1,<2.0.0)",
+    "celery[redis] (>=5.6.3,<6.0.0)",
+    "playwright (>=1.49.0,<2.0.0)",
+    "pyjwt (>=2.10.0,<3.0.0)",
+    "passlib[bcrypt] (>=1.7.4,<2.0.0)",
+    "pydantic-settings (>=2.9.0,<3.0.0)",
+    "httpx (>=0.28.0,<1.0.0)",
+    "playwright-stealth (>=1.0.6,<2.0.0)",
+    "bcrypt (==4.0.1)",
+    "setuptools (>=69.0.0,<70.0.0)",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
