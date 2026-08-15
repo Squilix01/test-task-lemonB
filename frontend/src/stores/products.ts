@@ -24,6 +24,7 @@ export const useProductsStore = defineStore('products', () => {
   const isScraping = ref(false)
   const isScoring = ref(false)
   const activeTask = ref<ActiveTaskState | null>(null)
+  const isTaskModalOpen = ref(false)
 
   // Filters & display state
   const searchQuery = ref('')
@@ -103,43 +104,46 @@ export const useProductsStore = defineStore('products', () => {
     const interval = setInterval(async () => {
       try {
         const res = await productsApi.getTaskStatus(taskId)
-        if (!activeTask.value || activeTask.value.id !== taskId) {
-          clearInterval(interval)
-          return
-        }
 
-        if (res.title) {
-          activeTask.value.title = res.title
-        }
+        if (activeTask.value && activeTask.value.id === taskId) {
+          if (res.title) {
+            activeTask.value.title = res.title
+          }
 
-        const pct = res.total > 0 ? Math.min(100, Math.round((res.current / res.total) * 100)) : 0
-        activeTask.value.progress = pct
-        activeTask.value.statusText = res.status
-        activeTask.value.currentProduct = res.product
+          const pct = res.total > 0 ? Math.min(100, Math.round((res.current / res.total) * 100)) : (res.state === 'SUCCESS' ? 100 : activeTask.value.progress)
+          activeTask.value.progress = pct
+          activeTask.value.statusText = res.status || (res.state === 'SUCCESS' ? 'Завершено успішно' : 'Обробка...')
+          activeTask.value.currentProduct = res.product
 
-        if (res.status && !activeTask.value.logs.some((l) => l.includes(res.status))) {
-          addLog(res.status)
+          if (res.status && !activeTask.value.logs.some((l) => l.includes(res.status))) {
+            addLog(res.status)
+          }
         }
 
         if (res.state === 'SUCCESS') {
           clearInterval(interval)
-          activeTask.value.isDone = true
-          activeTask.value.progress = 100
-          addLog('Успішно завершено!')
-          toast.show('Готово', type === 'scrape' ? 'Парсинг товарів успішно завершено!' : 'Скоринг товарів завершено!', 'success')
+          if (activeTask.value && activeTask.value.id === taskId) {
+            activeTask.value.isDone = true
+            activeTask.value.progress = 100
+            activeTask.value.statusText = 'Завершено успішно!'
+            addLog('Успішно завершено!')
+          }
           if (type === 'scrape') isScraping.value = false
           if (type === 'score') isScoring.value = false
+          toast.show('Готово', type === 'scrape' ? 'Парсинг товарів успішно завершено!' : 'Скоринг товарів завершено!', 'success')
           await fetchProducts()
         } else if (res.state === 'FAILURE') {
           clearInterval(interval)
-          activeTask.value.isError = true
-          addLog(`Помилка: ${res.status}`)
-          toast.show('Помилка', `Задача завершилась з помилкою: ${res.status}`, 'error')
+          if (activeTask.value && activeTask.value.id === taskId) {
+            activeTask.value.isError = true
+            addLog(`Помилка: ${res.status}`)
+          }
           if (type === 'scrape') isScraping.value = false
           if (type === 'score') isScoring.value = false
+          toast.show('Помилка', `Задача завершилась з помилкою: ${res.status || 'Невідома помилка'}`, 'error')
         }
       } catch (err) {
-        // network or auth error during polling
+        // network or auth error during polling, keep polling until celery task state is obtained
       }
     }, 1200)
   }
@@ -158,6 +162,7 @@ export const useProductsStore = defineStore('products', () => {
         isDone: false,
         isError: false,
       }
+      isTaskModalOpen.value = true
       pollTask(res.task_id, 'scrape')
     } catch (err: any) {
       toast.show('Помилка', 'Не вдалося запустити парсинг', 'error')
@@ -179,6 +184,7 @@ export const useProductsStore = defineStore('products', () => {
         isDone: false,
         isError: false,
       }
+      isTaskModalOpen.value = true
       pollTask(res.task_id, 'score')
     } catch (err: any) {
       toast.show('Помилка', 'Не вдалося запустити скоринг', 'error')
@@ -186,8 +192,25 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
+  function minimizeTaskModal() {
+    isTaskModalOpen.value = false
+  }
+
+  function openTaskModal() {
+    if (activeTask.value) {
+      isTaskModalOpen.value = true
+    }
+  }
+
+  function closeTaskModal() {
+    isTaskModalOpen.value = false
+    if (activeTask.value?.isDone || activeTask.value?.isError) {
+      activeTask.value = null
+    }
+  }
+
   function dismissTask() {
-    activeTask.value = null
+    minimizeTaskModal()
   }
 
   function openScoreModal(product: Product) {
@@ -205,6 +228,7 @@ export const useProductsStore = defineStore('products', () => {
     isScraping,
     isScoring,
     activeTask,
+    isTaskModalOpen,
     searchQuery,
     selectedCategory,
     minScore,
@@ -216,6 +240,9 @@ export const useProductsStore = defineStore('products', () => {
     fetchProducts,
     triggerScrape,
     triggerScore,
+    minimizeTaskModal,
+    openTaskModal,
+    closeTaskModal,
     dismissTask,
     openScoreModal,
     closeScoreModal,

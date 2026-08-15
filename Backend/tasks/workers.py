@@ -45,12 +45,15 @@ async def _scrape_amazon_impl(task_self=None):
         count = 0
         for item in items:
             try:
-                existing = await repo.get_by_url(item["product_url"])
+                existing = await repo.find_duplicate(item.get("product_url", ""), item.get("name", ""))
                 if existing:
                     existing.price = item["price"]
                     existing.rating = item["rating"]
                     existing.number_of_reviews = item["number_of_reviews"]
                     existing.image_url = item["image_url"]
+                    existing.category = item["category"]
+                    if item.get("product_url") and item["product_url"] != "https://www.amazon.com":
+                        existing.product_url = item["product_url"]
                 else:
                     await repo.create(**item)
                     count += 1

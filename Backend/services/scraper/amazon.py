@@ -140,15 +140,24 @@ class AmazonScraper:
                         if link_el:
                             href = await link_el.get_attribute("href")
                             if href:
-                                if href.startswith("http"):
-                                    product_url = href.split("?")[0]
+                                asin_match = re.search(r"/(?:dp|gp/product|product)/([A-Z0-9]{10})", href)
+                                if asin_match:
+                                    product_url = f"https://www.amazon.com/dp/{asin_match.group(1)}"
                                 else:
-                                    product_url = f"https://www.amazon.com{href.split('?')[0]}"
+                                    clean_href = re.sub(r"/ref=.*", "", href.split("?")[0])
+                                    if clean_href.startswith("http"):
+                                        product_url = clean_href
+                                    else:
+                                        product_url = f"https://www.amazon.com{clean_href}"
 
                         img_el = await card.query_selector("img")
                         image_url: str = (
                             await img_el.get_attribute("src") if img_el else ""
                         )
+
+                        # Prevent in-batch duplicate items
+                        if any(r["name"].lower() == name.lower() or (product_url and r["product_url"] == product_url) for r in results):
+                            continue
 
                         results.append(
                             {

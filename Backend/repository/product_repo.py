@@ -34,6 +34,23 @@ class ProductRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_name(self, name: str) -> Product | None:
+        result = await self.session.execute(
+            select(Product).where(func.lower(Product.name) == func.lower(name))
+        )
+        return result.scalars().first()
+
+    async def find_duplicate(self, product_url: str, name: str) -> Product | None:
+        # First match by canonical URL if available
+        if product_url and product_url != "https://www.amazon.com":
+            by_url = await self.get_by_url(product_url)
+            if by_url:
+                return by_url
+        # Match by name
+        if name:
+            return await self.get_by_name(name)
+        return None
+
     async def create(self, **kwargs) -> Product:
         product = Product(**kwargs)
         self.session.add(product)

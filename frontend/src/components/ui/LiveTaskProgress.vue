@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useProductsStore } from '@/stores/products'
-import { Sparkles, RefreshCw, Terminal, CheckCircle2, AlertCircle, X, ChevronDown, ChevronUp, Cpu, Calculator } from 'lucide-vue-next'
+import { Sparkles, RefreshCw, Terminal, CheckCircle2, AlertCircle, X, ChevronDown, ChevronUp, Maximize2 } from 'lucide-vue-next'
 
 const productsStore = useProductsStore()
 const showLogs = ref(true)
 </script>
 
 <template>
-  <!-- Fullscreen Modal Backdrop Overlay -->
+  <!-- 1. Fullscreen Modal Backdrop Overlay -->
   <Teleport to="body">
     <div
-      v-if="productsStore.activeTask"
+      v-if="productsStore.isTaskModalOpen && productsStore.activeTask"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
     >
       <!-- Centered Modal Card -->
       <div
-        class="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 relative overflow-hidden backdrop-blur-2xl transition-all"
+        class="w-full max-w-lg rounded-3xl bg-slate-900 border shadow-2xl p-6 relative overflow-hidden backdrop-blur-2xl transition-all"
         :class="{
           'border-emerald-500/40 shadow-emerald-500/10': productsStore.activeTask.isDone,
           'border-rose-500/40 shadow-rose-500/10': productsStore.activeTask.isError,
@@ -79,7 +79,7 @@ const showLogs = ref(true)
 
           <!-- Close / Dismiss (if running, acts as minimize) -->
           <button
-            @click="productsStore.dismissTask"
+            @click="productsStore.activeTask.isDone || productsStore.activeTask.isError ? productsStore.closeTaskModal() : productsStore.minimizeTaskModal()"
             class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
             title="Закрити / Згорнути"
           >
@@ -163,7 +163,7 @@ const showLogs = ref(true)
         <div class="mt-6 flex items-center justify-end gap-3 relative z-10 pt-4 border-t border-slate-800/80">
           <button
             v-if="!productsStore.activeTask.isDone && !productsStore.activeTask.isError"
-            @click="productsStore.dismissTask"
+            @click="productsStore.minimizeTaskModal"
             class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
           >
             Згорнути у фон
@@ -171,12 +171,30 @@ const showLogs = ref(true)
 
           <button
             v-else
-            @click="productsStore.dismissTask"
+            @click="productsStore.closeTaskModal"
             class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-all shadow-lg shadow-emerald-600/20"
           >
             Зрозуміло, закрити
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 2. Minimized Floating Task Chip (When running in background) -->
+    <div
+      v-else-if="productsStore.activeTask && !productsStore.isTaskModalOpen && !productsStore.activeTask.isDone && !productsStore.activeTask.isError"
+      @click="productsStore.openTaskModal"
+      class="fixed bottom-6 right-6 z-40 flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-sky-500/40 shadow-2xl backdrop-blur-lg cursor-pointer hover:scale-105 transition-all text-white group"
+    >
+      <RefreshCw class="w-4 h-4 text-sky-400 animate-spin" />
+      <div class="flex flex-col">
+        <span class="text-xs font-bold text-slate-200 group-hover:text-white flex items-center gap-1.5">
+          {{ productsStore.activeTask.title }} ({{ productsStore.activeTask.progress }}%)
+          <Maximize2 class="w-3 h-3 text-slate-400 group-hover:text-white" />
+        </span>
+        <span class="text-[10px] text-slate-400 truncate max-w-[200px]">
+          {{ productsStore.activeTask.statusText }}
+        </span>
       </div>
     </div>
   </Teleport>

@@ -77,22 +77,20 @@ const productsStore = useProductsStore()
 
       <!-- Scrape button -->
       <button
-        @click="productsStore.triggerScrape"
-        :disabled="productsStore.isScraping"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-sm font-medium transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="productsStore.isScraping ? productsStore.openTaskModal() : productsStore.triggerScrape()"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-sm font-medium transition-all shadow-sm"
       >
         <RefreshCw class="w-4 h-4" :class="{ 'animate-spin': productsStore.isScraping }" />
-        <span>{{ productsStore.isScraping ? 'Парсинг...' : 'Спарсити Amazon' }}</span>
+        <span>{{ productsStore.isScraping ? 'Парсинг... (лог)' : 'Спарсити Amazon' }}</span>
       </button>
 
       <!-- Score button -->
       <button
-        @click="productsStore.triggerScore"
-        :disabled="productsStore.isScoring"
-        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+        @click="productsStore.isScoring ? productsStore.openTaskModal() : productsStore.triggerScore()"
+        class="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition-all shadow-lg shadow-emerald-600/20"
       >
         <Sparkles class="w-4 h-4" :class="{ 'animate-pulse': productsStore.isScoring }" />
-        <span>{{ productsStore.isScoring ? 'Оцінюємо...' : 'AI Score' }}</span>
+        <span>{{ productsStore.isScoring ? 'Оцінюємо... (лог)' : 'AI Score' }}</span>
       </button>
     </div>
   </div>

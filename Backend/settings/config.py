@@ -5,7 +5,7 @@ from typing import Optional
 
 
 class DataBaseConfig(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore", env_file=[".env", "../.env", "/app/.env"])
 
     user: str = Field(default="postgres", alias="DB_USER")
     password: str = Field(default="postgres", alias="DB_PASSWORD")
@@ -25,7 +25,7 @@ class DataBaseConfig(BaseSettings):
 
 
 class RedisConfig(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore", env_file=[".env", "../.env", "/app/.env"])
 
     host: str = Field(default="redis", alias="REDIS_HOST")
     port: int = Field(default=6379, alias="REDIS_PORT")
@@ -35,7 +35,7 @@ class RedisConfig(BaseSettings):
 
 
 class JWTConfig(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore", env_file=[".env", "../.env", "/app/.env"])
 
     secret_key: str = Field(default="super-secret-key-change-me-in-production", alias="JWT_SECRET_KEY")
     algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
@@ -43,7 +43,7 @@ class JWTConfig(BaseSettings):
 
 
 class LLMConfig(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore", env_file=[".env", "../.env", "/app/.env"])
 
     provider: Optional[str] = Field(default=None, alias="LLM_PROVIDER")
     api_key: Optional[str] = Field(default=None, alias="LLM_API_KEY")
@@ -51,7 +51,7 @@ class LLMConfig(BaseSettings):
 
 
 class AppConfig(BaseSettings):
-    model_config = SettingsConfigDict(extra="ignore", env_file=".env")
+    model_config = SettingsConfigDict(extra="ignore", env_file=[".env", "../.env", "/app/.env"])
 
     seed_username: str = Field(default="admin", alias="SEED_USERNAME")
     seed_password: str = Field(default="admin", alias="SEED_PASSWORD")
